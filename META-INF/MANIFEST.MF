@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-ActivationPolicy: lazy
+Bundle-Name: DeepSeek Plugin
+Bundle-SymbolicName: com.deepseek.plugin;singleton:=true
+Bundle-Vendor: Evandro L. Vieira
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: com.deepseek.plugin.Activator
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime
