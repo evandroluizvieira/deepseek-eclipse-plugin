@@ -8,4 +8,10 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: com.deepseek.plugin.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.core.commands,
+ org.eclipse.equinox.common,
+ org.eclipse.ui.forms,
+ org.eclipse.swt,
+ org.eclipse.jface 
+Automatic-Module-Name: com.deepseek.plugin
