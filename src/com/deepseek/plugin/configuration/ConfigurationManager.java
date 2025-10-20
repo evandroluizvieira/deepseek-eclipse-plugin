@@ -1,4 +1,8 @@
 package com.deepseek.plugin.configuration;
+<<<<<<< HEAD
+=======
+
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 import org.eclipse.jface.preference.IPreferenceStore;
 import com.deepseek.plugin.Activator;
 import com.deepseek.plugin.preferences.DeepSeekPreferencesPage;

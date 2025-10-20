@@ -1,11 +1,18 @@
 package com.deepseek.plugin.api;
+<<<<<<< HEAD
+=======
+
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+<<<<<<< HEAD
 import java.util.concurrent.atomic.AtomicBoolean;
+=======
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 
 /**
  * Client for communicating with the DeepSeek API.
@@ -14,8 +21,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DeepSeekAPIClient {
     private static final String API_URL = "https://api.deepseek.com/chat/completions";
     private final String apiKey;
+<<<<<<< HEAD
     private HttpURLConnection currentConnection;
     private final AtomicBoolean isCancelled;
+=======
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     
     /**
      * Constructs a new DeepSeek API client with the provided API key.
@@ -24,17 +34,24 @@ public class DeepSeekAPIClient {
      */
     public DeepSeekAPIClient(String apiKey) {
         this.apiKey = apiKey;
+<<<<<<< HEAD
         this.isCancelled = new AtomicBoolean(false);
+=======
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     }
     
     /**
      * Sends a message to the DeepSeek API and returns the response.
+<<<<<<< HEAD
      * Implements retry logic with exponential backoff for transient failures.
+=======
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
      *
      * @param message the user message to send
      * @return the AI response or error message
      */
     public String sendMessage(String message) {
+<<<<<<< HEAD
         isCancelled.set(false);
         
         for (int attempt = 1; attempt <= 3; attempt++) {
@@ -177,6 +194,28 @@ public class DeepSeekAPIClient {
                 } catch (Exception e) {
                 }
             }).start();
+=======
+        try {
+        	URI uri = URI.create(API_URL);
+        	URL url = uri.toURL();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
+            connection.setDoOutput(true);
+            
+            String jsonInput = createRequestJson(message);
+            
+            try (OutputStream outputStream = connection.getOutputStream()) {
+                byte[] input = jsonInput.getBytes("utf-8");
+                outputStream.write(input, 0, input.length);
+            }
+            
+            return parseResponse(connection);
+            
+        } catch (Exception exception) {
+            return "Error: " + exception.getMessage();
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
         }
     }
     
@@ -206,7 +245,30 @@ public class DeepSeekAPIClient {
                   .replace("\r", "\\r")
                   .replace("\t", "\\t");
     }
+<<<<<<< HEAD
         
+=======
+    
+    /**
+     * Parses the HTTP response from the DeepSeek API.
+     *
+     * @param connection the HTTP connection
+     * @return extracted content from response
+     * @throws Exception if reading response fails
+     */
+    private String parseResponse(HttpURLConnection connection) throws Exception {
+        try (BufferedReader reader = new BufferedReader(
+            new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = reader.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            return extractContentFromJson(response.toString());
+        }
+    }
+    
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     /**
      * Extracts the message content from the JSON response.
      *
@@ -214,6 +276,7 @@ public class DeepSeekAPIClient {
      * @return extracted message content
      */
     private String extractContentFromJson(String jsonResponse) {
+<<<<<<< HEAD
         try {
             int contentStart = jsonResponse.indexOf("\"content\":\"");
             if (contentStart == -1) {
@@ -248,6 +311,15 @@ public class DeepSeekAPIClient {
         } catch (Exception e) {
             return "Erro ao processar resposta: " + e.getMessage();
         }
+=======
+        if (jsonResponse.contains("\"content\"")) {
+            int startIndex = jsonResponse.indexOf("\"content\":\"") + 11;
+            int endIndex = jsonResponse.indexOf("\"", startIndex);
+            String content = jsonResponse.substring(startIndex, endIndex);
+            return unescapeJsonString(content);
+        }
+        return jsonResponse;
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     }
     
     /**
