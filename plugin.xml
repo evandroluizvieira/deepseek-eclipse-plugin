@@ -7,4 +7,11 @@
             id="com.deepseek.plugin.views.DeepSeekView">
       </view>
    </extension>
+   <extension point="org.eclipse.ui.preferencePages">
+    <page
+        class="com.deepseek.plugin.preferences.DeepSeekPreferencesPage"
+        id="com.deepseek.plugin.preferences.DeepSeekPreferencesPage"
+        name="DeepSeek Plugin">
+    </page>
+   </extension>
 </plugin>

@@ -38,8 +38,11 @@ git clone https://github.com/evandroluizvieira/deepseek-eclipse-plugin.git
 deepseek-eclipse-plugin/
 ├── src/
 │   └── com/deepseek/plugin/
-│       ├── views/DeepSeekView.java
-│       └── Activator.java
+│       ├── Activator.java
+│       ├── api/DeepSeekApiClient.java
+│       ├── configuration/ConfigurationManager.java
+│       ├── preferences/DeepSeekPreferencesPage.java
+│       └── views/DeepSeekView.java
 ├── META-INF/MANIFEST.MF
 ├── plugin.xml
 └── build.properties
@@ -48,6 +51,8 @@ deepseek-eclipse-plugin/
 ### Build & Test
 - Right-click project → Run As → Eclipse Application
 - In new Eclipse instance: Window → Show View → Other → DeepSeek Assistant
+- Configure API key in preferences if not already set
+- Start chatting with DeepSeek AI
 
 ## Usage
 **Once installed:**
@@ -56,11 +61,11 @@ deepseek-eclipse-plugin/
  - Get AI-powered responses directly in Eclipse
 
 ### Technical Stack
- - **Platform:** Eclipse RCP/Plugin
+ - **Platform:** Eclipse RCP
+ - **Build:** Eclipse PDE
  - **Runtime:** OSGi Equinox
  - **UI:** SWT/JFace
  - **Java:** 21+
- - **Build:** Eclipse PDE
 
 ### Contributing
 Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
