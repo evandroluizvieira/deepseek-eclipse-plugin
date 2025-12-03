@@ -1,200 +1,228 @@
 package com.deepseek.plugin.views;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.part.ViewPart;
 
 import com.deepseek.plugin.api.DeepSeekAPIClient;
 import com.deepseek.plugin.configuration.ConfigurationManager;
+import com.deepseek.plugin.ui.ChatBubble;
 
 /**
- * Main view for interacting with the DeepSeek AI assistant.
- * Provides a chat interface within the Eclipse IDE.
+ * Main view of the DeepSeek Eclipse Plugin.
+ * Displays the conversation history and provides controls
+ * to send user messages to the DeepSeek API.
+ * 
+ * <p>This view includes a scrollable chat interface constructed
+ * using custom ChatBubble widgets, along with an input field and
+ * actions for sending and canceling API requests.</p>
  */
 public class DeepSeekView extends ViewPart {
-    
+
+    /** The Eclipse view ID. */
     public static final String ID = "com.deepseek.plugin.views.DeepSeekView";
-    
+
     private Text inputText;
-    private Text outputText;
     private Button sendButton;
     private Button cancelButton;
+
     private boolean isProcessing;
     private Thread apiThread;
     private DeepSeekAPIClient apiClient;
-    
+
+    private Composite messageContainer;
+    private ScrolledComposite scroller;
+
     /**
-     * Creates the controls and layout for this view.
+     * Creates the UI structure for the DeepSeek view.
      *
-     * @param parent the parent composite to contain the view components
+     * <p>This method sets up the conversation history panel, input controls,
+     * and the initial welcome message.</p>
+     *
+     * @param parent the parent composite into which the view is created
      */
     @Override
     public void createPartControl(Composite parent) {
-        Composite mainContainer = new Composite(parent, SWT.NONE);
-        mainContainer.setLayout(new GridLayout(1, false));
-        
-        Label outputLabel = new Label(mainContainer, SWT.NONE);
-        outputLabel.setText("Histórico de Conversa:");
-        outputLabel.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.BEGINNING, true, false));
-        
-        outputText = new Text(mainContainer, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
-        org.eclipse.swt.layout.GridData outputGridData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, true);
-        outputGridData.heightHint = 300;
-        outputText.setLayoutData(outputGridData);
-        
-        Label separator = new Label(mainContainer, SWT.SEPARATOR | SWT.HORIZONTAL);
-        separator.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.CENTER, true, false));
-        
-        Label inputLabel = new Label(mainContainer, SWT.NONE);
-        inputLabel.setText("Nova Pergunta:");
-        inputLabel.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.BEGINNING, true, false));
-        
-        inputText = new Text(mainContainer, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-        org.eclipse.swt.layout.GridData inputGridData = new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, false);
-        inputGridData.heightHint = 80;
-        inputText.setLayoutData(inputGridData);
-        
-        Composite buttonContainer = new Composite(mainContainer, SWT.NONE);
-        buttonContainer.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.CENTER, true, false));
-        buttonContainer.setLayout(new GridLayout(2, true));
-        
-        sendButton = new Button(buttonContainer, SWT.PUSH);
-        sendButton.setText("Enviar para DeepSeek");
-        sendButton.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.CENTER, true, false));
-        sendButton.addListener(SWT.Selection, e -> sendToDeepSeek());
-        
-        cancelButton = new Button(buttonContainer, SWT.PUSH);
-        cancelButton.setText("Cancelar");
-        cancelButton.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.CENTER, true, false));
-        cancelButton.addListener(SWT.Selection, e -> cancelRequest());
+
+        Composite main = new Composite(parent, SWT.NONE);
+        main.setLayout(new GridLayout(1, false));
+
+        Label outputLabel = new Label(main, SWT.NONE);
+        outputLabel.setText("History:");
+        outputLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        scroller = new ScrolledComposite(main, SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+        scroller.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        scroller.setExpandVertical(true);
+        scroller.setExpandHorizontal(true);
+
+        messageContainer = new Composite(scroller, SWT.NONE);
+        messageContainer.setLayout(new GridLayout(1, false));
+        messageContainer.setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+
+        scroller.setContent(messageContainer);
+        scroller.setMinSize(messageContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+        Label inputLabel = new Label(main, SWT.NONE);
+        inputLabel.setText("New Question:");
+        inputLabel.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        inputText = new Text(main, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+        GridData inputGD = new GridData(SWT.FILL, SWT.TOP, true, false);
+        inputGD.heightHint = 80;
+        inputText.setLayoutData(inputGD);
+
+        Composite buttonBar = new Composite(main, SWT.NONE);
+        buttonBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        buttonBar.setLayout(new GridLayout(2, true));
+
+        sendButton = new Button(buttonBar, SWT.PUSH);
+        sendButton.setText("Send");
+        sendButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+        sendButton.addListener(SWT.Selection, e -> sendMessage());
+
+        cancelButton = new Button(buttonBar, SWT.PUSH);
+        cancelButton.setText("Cancel");
+        cancelButton.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
         cancelButton.setEnabled(false);
-        
-        outputText.setText("Bem-vindo ao DeepSeek Assistant!\n\n");
+        cancelButton.addListener(SWT.Selection, e -> cancelRequest());
+
+        addBubble(ChatBubble.BubbleType.AI, "Welcome to DeepSeek Assistant!");
     }
-    
+
     /**
-     * Handles the sending of user messages to the DeepSeek API.
+     * Adds a new chat bubble to the conversation history.
+     *
+     * @param type the bubble type (USER or AI)
+     * @param msg  the message content
      */
-    private void sendToDeepSeek() {
+    private void addBubble(ChatBubble.BubbleType type, String msg) {
+        ChatBubble bubble = new ChatBubble(
+                messageContainer,
+                type,
+                type == ChatBubble.BubbleType.USER ? "User" : "DeepSeek",
+                msg
+        );
+
+        bubble.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        bubble.adjustBubbleToTextContent();
+
+        messageContainer.layout(true, true);
+        scroller.setMinSize(messageContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+        scrollToBottom();
+    }
+
+    /**
+     * Replaces the latest bubble with new message content.
+     *
+     * @param newMessage the new text to display in the last bubble
+     */
+    private void replaceLastBubble(String newMessage) {
+        Control[] children = messageContainer.getChildren();
+        if (children.length == 0) return;
+
+        Control last = children[children.length - 1];
+        if (last instanceof ChatBubble bubble) {
+            bubble.updateMessage(newMessage);
+            messageContainer.layout(true, true);
+            scroller.setMinSize(messageContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+            scrollToBottom();
+        }
+    }
+
+    /**
+     * Sends a user question to the DeepSeek API.
+     *
+     * <p>This method creates a new thread for the API request,
+     * manages UI updates, and handles success and error responses.</p>
+     */
+    private void sendMessage() {
         String question = inputText.getText().trim();
-        if (question.isEmpty() || isProcessing) {
-            return;
-        }
-        
+        if (question.isEmpty() || isProcessing) return;
+
         if (!ConfigurationManager.hasApiKey()) {
-            appendToOutput("Erro: Configure sua API Key primeiro em Window → Preferences → DeepSeek Plugin\n\n");
+            addBubble(ChatBubble.BubbleType.AI,
+                    "Erro: Configure sua API Key primeiro.\nWindow → Preferences → DeepSeek Plugin");
             return;
         }
-        
-        setProcessingState(true);
-        
-        appendToOutput("Você: " + question + "\n");
-        appendToOutput("DeepSeek: Processando...\n");
-        
-        String savedQuestion = question;
+
         inputText.setText("");
-        
+        addBubble(ChatBubble.BubbleType.USER, question);
+        addBubble(ChatBubble.BubbleType.AI, "Processando...");
+
+        setProcessingState(true);
+
         apiThread = new Thread(() -> {
             try {
-                String apiKey = ConfigurationManager.getApiKey();
-                apiClient = new DeepSeekAPIClient(apiKey);
-                String response = apiClient.sendMessage(savedQuestion);
-                
+                apiClient = new DeepSeekAPIClient(ConfigurationManager.getApiKey());
+                String result = apiClient.sendMessage(question);
+
                 if (!apiThread.isInterrupted()) {
                     Display.getDefault().asyncExec(() -> {
-                        replaceLastLine("DeepSeek: " + response + "\n\n");
+                        replaceLastBubble(result);
                         setProcessingState(false);
                     });
                 }
-                
-            } catch (Exception exception) {
+
+            } catch (Exception ex) {
                 if (!apiThread.isInterrupted()) {
                     Display.getDefault().asyncExec(() -> {
-                        replaceLastLine("DeepSeek: Erro - " + exception.getMessage() + "\n\n");
+                        replaceLastBubble("Erro: " + ex.getMessage());
                         setProcessingState(false);
                     });
                 }
-            } finally {
-                apiClient = null;
             }
         });
-        
+
         apiThread.start();
     }
 
     /**
-     * Cancels the current API request in a non-blocking way.
+     * Cancels the active API request, if any.
+     *
+     * <p>This method interrupts the worker thread, cancels the
+     * API client request, and updates the UI accordingly.</p>
      */
     private void cancelRequest() {
-        if (isProcessing) {
-            if (apiThread != null) {
-                apiThread.interrupt();
-            }
-            if (apiClient != null) {
-                apiClient.cancelRequest();
-            }
-            Display.getDefault().asyncExec(() -> {
-                replaceLastLine("DeepSeek: Requisição cancelada pelo usuário.\n\n");
-                setProcessingState(false);
-            });
-        }
+        if (!isProcessing) return;
+
+        if (apiThread != null) apiThread.interrupt();
+        if (apiClient != null) apiClient.cancelRequest();
+
+        replaceLastBubble("Requisição cancelada pelo usuário.");
+        setProcessingState(false);
     }
-    
+
     /**
-     * Appends text to the output area and scrolls to the bottom.
-     *
-     * @param text the text to append
-     */
-    private void appendToOutput(String text) {
-        outputText.append(text);
-        scrollToBottom();
-    }
-    
-    /**
-     * Replaces the last line in the output area with new text.
-     *
-     * @param newText the new text to replace the last line
-     */
-    private void replaceLastLine(String newText) {
-        String currentText = outputText.getText();
-        
-        String targetLine = "DeepSeek: Processando...\n";
-        int lastIndex = currentText.lastIndexOf(targetLine);
-        
-        if (lastIndex != -1) {
-            String before = currentText.substring(0, lastIndex);
-            String after = currentText.substring(lastIndex + targetLine.length());
-            String updatedText = before + newText + after;
-            outputText.setText(updatedText);
-            scrollToBottom();
-        } else {
-            appendToOutput(newText);
-        }
-    }
-    
-    /**
-     * Scrolls the output text area to the bottom.
+     * Scrolls the view to the bottom of the conversation history.
      */
     private void scrollToBottom() {
-        outputText.getVerticalBar().setSelection(outputText.getVerticalBar().getMaximum());
+        scroller.getVerticalBar().setSelection(
+            scroller.getVerticalBar().getMaximum()
+        );
     }
-    
+
     /**
-     * Updates the UI state to reflect processing status.
+     * Updates the processing state and enables/disables UI controls.
      *
-     * @param processing true when an API request is in progress
+     * @param p true if an API request is running
      */
-    private void setProcessingState(boolean processing) {
-        this.isProcessing = processing;
-        sendButton.setEnabled(!processing);
-        sendButton.setText(processing ? "Processando..." : "Enviar para DeepSeek");
-        cancelButton.setEnabled(processing);
-        inputText.setEnabled(!processing);
+    private void setProcessingState(boolean p) {
+        this.isProcessing = p;
+        sendButton.setEnabled(!p);
+        cancelButton.setEnabled(p);
     }
-    
+
     /**
-     * Sets the focus to the primary input control of this view.
+     * Sets focus on the input field when the view becomes active.
      */
     @Override
     public void setFocus() {
