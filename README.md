@@ -42,6 +42,7 @@ deepseek-eclipse-plugin/
 │       ├── api/DeepSeekApiClient.java
 │       ├── configuration/ConfigurationManager.java
 │       ├── preferences/DeepSeekPreferencesPage.java
+│       ├── ui/ChatBubble.java
 │       └── views/DeepSeekView.java
 ├── META-INF/MANIFEST.MF
 ├── plugin.xml
