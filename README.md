@@ -1,75 +1,85 @@
 # DeepSeek Eclipse Plugin
 
-![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk)
-![Eclipse](https://img.shields.io/badge/Eclipse_Plugin-2C2255?logo=eclipse)
-![OSGi](https://img.shields.io/badge/OSGi-Equinox-6DB33F)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk)](https://openjdk.org/)
 [![License](https://img.shields.io/badge/License-EPL_2.0-red.svg)](https://www.eclipse.org/legal/epl-2.0/)
+[![Eclipse Plugin](https://img.shields.io/badge/Eclipse_Plugin-RCP-2C2255?logo=eclipse)](https://www.eclipse.org/)
+[![Documentation](https://img.shields.io/badge/docs-Javadoc-blue.svg)](https://evandroluizvieira.github.io/deepseek-eclipse-plugin/index.html)
+[![Version](https://img.shields.io/github/v/release/evandroluizvieira/deepseek-eclipse-plugin?sort=semver)](https://github.com/evandroluizvieira/deepseek-eclipse-plugin/releases)
 
 ## Overview
-DeepSeek Eclipse Plugin integrates AI assistance directly into Eclipse IDE, providing seamless access to DeepSeek's powerful language model for code analysis, explanations, and development guidance.
 
-The plugin is open source and licensed under the Eclipse Public License 2.0.
+DeepSeek Eclipse Plugin brings AI assistance directly into Eclipse IDE, enabling developers to ask questions, analyze code, and receive guided suggestions from a DeepSeek language model.
+
+The plugin integrates seamlessly with Eclipse RCP using SWT/JFace and OSGi technologies, providing a native IDE experience for AI-assisted development workflows.
+
+## Resources
+
+**[API Documentation](https://evandroluizvieira.github.io/deepseek-eclipse-plugin/index.html)** - Complete JavaDoc API reference
+
+**[Download Plugin](https://github.com/evandroluizvieira/deepseek-eclipse-plugin/releases/latest)** - Latest Eclipse plugin release
 
 ## Features
-- **AI-Powered Chat**: Direct DeepSeek integration within Eclipse
-- **Code Analysis**: Get explanations and suggestions for your code
-- **Real-time Assistance**: Instant AI support while coding
-- **Customizable**: Configurable API settings and preferences
+
+- **AI Chat Integration** - DeepSeek assistant directly inside Eclipse
+- **Code Analysis** - Analyze and explain source code
+- **Conversation History** - Persistent interaction workflow
+- **Request Cancellation** - Interrupt long-running API requests
+- **Custom Preferences** - Configure API key and plugin settings
+- **SWT/JFace Integration** - Native Eclipse UI experience
+- **OSGi Plugin Architecture** - Eclipse RCP compatible
+- **GitHub Pages JavaDoc** - Automatically published API documentation
 
 ## Installation
 
-### From Source
-```bash
-git clone https://github.com/evandroluizvieira/deepseek-eclipse-plugin.git
-```
+### Manual Installation
 
-### Eclipse Setup
- - Import as existing Eclipse project
- - Ensure Eclipse for RCP Developers is used
- - Run as Eclipse Application to test
+1. Download the latest plugin `.jar` from the Releases page:
 
-### Development Prerequisites
- - Eclipse IDE for RCP and RAP Developers
- - Java 21+
- - DeepSeek API key
+   https://github.com/evandroluizvieira/deepseek-eclipse-plugin/releases/latest
 
-### Project Structure
-```
-deepseek-eclipse-plugin/
-├── src/
-│   └── com/deepseek/plugin/
-│       ├── Activator.java
-│       ├── api/DeepSeekApiClient.java
-│       ├── configuration/ConfigurationManager.java
-│       ├── preferences/DeepSeekPreferencesPage.java
-│       ├── ui/ChatBubble.java
-│       └── views/DeepSeekView.java
-├── META-INF/MANIFEST.MF
-├── plugin.xml
-└── build.properties
-```
+2. Open your Eclipse installation directory.
 
-### Build & Test
-- Right-click project → Run As → Eclipse Application
-- In new Eclipse instance: Window → Show View → Other → DeepSeek Assistant
-- Configure API key in preferences if not already set
-- Start chatting with DeepSeek AI
+3. Copy the plugin JAR into the `dropins/` folder.
+
+Example:
+
+   eclipse/dropins/deepseek-eclipse-plugin-*.jar
+
+4. Restart Eclipse.
+
+The plugin will be automatically detected and loaded by Eclipse.
+
+## Requirements
+
+- Eclipse IDE for RCP and RAP Developers (2025-09 or newer)
+- Java 21+
+- DeepSeek API key
 
 ## Usage
-**Once installed:**
- - Open DeepSeek Assistant view
- - Enter your questions or code snippets
- - Get AI-powered responses directly in Eclipse
 
-### Technical Stack
- - **Platform:** Eclipse RCP
- - **Build:** Eclipse PDE
- - **Runtime:** OSGi Equinox
- - **UI:** SWT/JFace
- - **Java:** 21+
+1. Open Eclipse
+2. Open the DeepSeek Assistant view
+3. Configure your DeepSeek API key
+4. Enter prompts or source code snippets
+5. Receive AI-powered responses directly inside Eclipse
 
-### Contributing
-Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests.
+## Troubleshooting
 
-### License
-This project is licensed under the Eclipse Public License 2.0 - see the LICENSE file for details.
+If the plugin does not appear after installation:
+- Ensure Eclipse meets the requirements (2025-09 or newer)
+- Check the Eclipse error log: Window > Show View > Error Log
+- Verify Java 21 is the default JRE
+- Confirm the JAR file is in the correct `dropins/` folder
+- Restart Eclipse with the `-clean` flag: `eclipse.exe -clean`
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit pull requests or open issues for bugs and feature requests. See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on commit conventions and development workflow.
+
+## License
+
+This project is licensed under the Eclipse Public License 2.0.
+
+## Author
+
+Evandro Luiz Vieira - [evandroluizvieira@hotmail.com](mailto:evandroluizvieira@hotmail.com)

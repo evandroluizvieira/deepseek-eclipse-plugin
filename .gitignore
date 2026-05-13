@@ -1,2 +1,5 @@
-/bin
-/All Files.txt
+# Eclipse
+.metadata/
+.settings/
+.classpath
+.project
