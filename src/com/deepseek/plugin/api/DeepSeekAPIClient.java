@@ -1,18 +1,12 @@
 package com.deepseek.plugin.api;
-<<<<<<< HEAD
-=======
 
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-<<<<<<< HEAD
 import java.util.concurrent.atomic.AtomicBoolean;
-=======
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 
 /**
  * Client for communicating with the DeepSeek API.
@@ -21,11 +15,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DeepSeekAPIClient {
     private static final String API_URL = "https://api.deepseek.com/chat/completions";
     private final String apiKey;
-<<<<<<< HEAD
     private HttpURLConnection currentConnection;
     private final AtomicBoolean isCancelled;
-=======
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     
     /**
      * Constructs a new DeepSeek API client with the provided API key.
@@ -34,24 +25,17 @@ public class DeepSeekAPIClient {
      */
     public DeepSeekAPIClient(String apiKey) {
         this.apiKey = apiKey;
-<<<<<<< HEAD
         this.isCancelled = new AtomicBoolean(false);
-=======
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     }
     
     /**
      * Sends a message to the DeepSeek API and returns the response.
-<<<<<<< HEAD
      * Implements retry logic with exponential backoff for transient failures.
-=======
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
      *
      * @param message the user message to send
      * @return the AI response or error message
      */
     public String sendMessage(String message) {
-<<<<<<< HEAD
         isCancelled.set(false);
         
         for (int attempt = 1; attempt <= 3; attempt++) {
@@ -76,21 +60,21 @@ public class DeepSeekAPIClient {
                 }
                 
                 if (isCancelled.get()) {
-                    return "Requisição cancelada.";
+                    return "Request cancelled.";
                 }
                 
                 int responseCode = currentConnection.getResponseCode();
                 if (responseCode != HttpURLConnection.HTTP_OK) {
                     if (responseCode == 429) {
-                        return "Erro: Rate limit excedido. Tente novamente em alguns instantes.";
+                        return "Error: Rate limit exceeded. Please try again in a few moments.";
                     } else if (responseCode >= 500) {
                         if (attempt < 3) {
                             Thread.sleep(2000 * attempt);
                             continue;
                         }
-                        return "Erro: Servidor indisponível (HTTP " + responseCode + ")";
+                        return "Error: Server unavailable (HTTP " + responseCode + ")";
                     } else {
-                        return "Erro HTTP: " + responseCode;
+                        return "HTTP Error: " + responseCode;
                     }
                 }
                 
@@ -101,34 +85,34 @@ public class DeepSeekAPIClient {
                     try {
                         Thread.sleep(3000 * attempt);
                     } catch (InterruptedException ie) {
-                        return "Requisição interrompida.";
+                        return "Request interrupted.";
                     }
                     continue;
                 }
-                return "Erro: Timeout - o servidor demorou muito para responder.";
+                return "Error: Timeout - server took too long to respond.";
                 
             } catch (Exception exception) {
                 if (isCancelled.get()) {
-                    return "Requisição cancelada.";
+                    return "Request cancelled.";
                 }
                 
                 if (attempt < 3) {
                     try {
                         Thread.sleep(2000 * attempt);
                     } catch (InterruptedException ie) {
-                        return "Requisição interrompida.";
+                        return "Request interrupted.";
                     }
                     continue;
                 }
                 
-                return "Erro: " + getFriendlyErrorMessage(exception);
+                return "Error: " + getFriendlyErrorMessage(exception);
                 
             } finally {
                 currentConnection = null;
             }
         }
         
-        return "Erro: Todas as tentativas falharam.";
+        return "Error: All attempts failed.";
     }
 
     /**
@@ -145,7 +129,7 @@ public class DeepSeekAPIClient {
             String responseLine;
             while ((responseLine = reader.readLine()) != null) {
                 if (isCancelled.get()) {
-                    return "Requisição cancelada.";
+                    return "Request cancelled.";
                 }
                 response.append(responseLine.trim());
             }
@@ -162,21 +146,21 @@ public class DeepSeekAPIClient {
     private String getFriendlyErrorMessage(Exception exception) {
         String message = exception.getMessage();
         if (message == null) {
-            return "Erro desconhecido.";
+            return "Unknown error.";
         }
         
         if (message.contains("ConnectException") || message.contains("No route to host")) {
-            return "Erro de conexão: Verifique sua internet.";
+            return "Connection error: Check your internet connection.";
         } else if (message.contains("SSL") || message.contains("certificate")) {
-            return "Erro de segurança SSL: Verifique a data/hora do sistema.";
+            return "SSL security error: Check system date/time.";
         } else if (message.contains("timed out")) {
-            return "Timeout: O servidor demorou muito para responder.";
+            return "Timeout: Server took too long to respond.";
         } else if (message.contains("401")) {
-            return "Erro de autenticação: API Key inválida ou expirada.";
+            return "Authentication error: Invalid or expired API Key.";
         } else if (message.contains("402")) {
-            return "Erro de pagamento: Saldo insuficiente na conta DeepSeek.";
+            return "Payment error: Insufficient balance on DeepSeek account.";
         } else if (message.contains("429")) {
-            return "Rate limit excedido: Aguarde alguns instantes.";
+            return "Rate limit exceeded: Please wait a few moments.";
         }
         
         return message;
@@ -194,28 +178,6 @@ public class DeepSeekAPIClient {
                 } catch (Exception e) {
                 }
             }).start();
-=======
-        try {
-        	URI uri = URI.create(API_URL);
-        	URL url = uri.toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setRequestProperty("Authorization", "Bearer " + apiKey);
-            connection.setDoOutput(true);
-            
-            String jsonInput = createRequestJson(message);
-            
-            try (OutputStream outputStream = connection.getOutputStream()) {
-                byte[] input = jsonInput.getBytes("utf-8");
-                outputStream.write(input, 0, input.length);
-            }
-            
-            return parseResponse(connection);
-            
-        } catch (Exception exception) {
-            return "Error: " + exception.getMessage();
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
         }
     }
     
@@ -245,30 +207,7 @@ public class DeepSeekAPIClient {
                   .replace("\r", "\\r")
                   .replace("\t", "\\t");
     }
-<<<<<<< HEAD
-        
-=======
     
-    /**
-     * Parses the HTTP response from the DeepSeek API.
-     *
-     * @param connection the HTTP connection
-     * @return extracted content from response
-     * @throws Exception if reading response fails
-     */
-    private String parseResponse(HttpURLConnection connection) throws Exception {
-        try (BufferedReader reader = new BufferedReader(
-            new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-            StringBuilder response = new StringBuilder();
-            String responseLine;
-            while ((responseLine = reader.readLine()) != null) {
-                response.append(responseLine.trim());
-            }
-            return extractContentFromJson(response.toString());
-        }
-    }
-    
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     /**
      * Extracts the message content from the JSON response.
      *
@@ -276,11 +215,10 @@ public class DeepSeekAPIClient {
      * @return extracted message content
      */
     private String extractContentFromJson(String jsonResponse) {
-<<<<<<< HEAD
         try {
             int contentStart = jsonResponse.indexOf("\"content\":\"");
             if (contentStart == -1) {
-                return "Resposta em formato inesperado: " + jsonResponse;
+                return "Unexpected response format: " + jsonResponse;
             }
             
             contentStart += 11;
@@ -302,24 +240,15 @@ public class DeepSeekAPIClient {
             }
             
             if (contentEnd >= length) {
-                return "Resposta incompleta ou formato inválido.";
+                return "Incomplete or invalid response format.";
             }
             
             String content = jsonResponse.substring(contentStart, contentEnd);
             return unescapeJsonString(content);
             
         } catch (Exception e) {
-            return "Erro ao processar resposta: " + e.getMessage();
+            return "Error processing response: " + e.getMessage();
         }
-=======
-        if (jsonResponse.contains("\"content\"")) {
-            int startIndex = jsonResponse.indexOf("\"content\":\"") + 11;
-            int endIndex = jsonResponse.indexOf("\"", startIndex);
-            String content = jsonResponse.substring(startIndex, endIndex);
-            return unescapeJsonString(content);
-        }
-        return jsonResponse;
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     }
     
     /**

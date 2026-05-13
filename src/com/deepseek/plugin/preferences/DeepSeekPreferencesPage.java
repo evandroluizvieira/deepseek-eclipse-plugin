@@ -1,8 +1,5 @@
 package com.deepseek.plugin.preferences;
-<<<<<<< HEAD
-=======
 
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;

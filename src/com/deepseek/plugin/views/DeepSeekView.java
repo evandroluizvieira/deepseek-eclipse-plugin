@@ -1,7 +1,6 @@
 package com.deepseek.plugin.views;
 
 import org.eclipse.swt.SWT;
-<<<<<<< HEAD
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
@@ -13,15 +12,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.PreferencesUtil;
-=======
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 import org.eclipse.ui.part.ViewPart;
 
 import com.deepseek.plugin.api.DeepSeekAPIClient;
 import com.deepseek.plugin.configuration.ConfigurationManager;
-<<<<<<< HEAD
 import com.deepseek.plugin.ui.ChatBubble;
 import com.deepseek.plugin.ui.ChatBubbleIA;
 import com.deepseek.plugin.ui.ChatBubbleUser;
@@ -100,10 +94,10 @@ public class DeepSeekView extends ViewPart {
         scroller.setContent(messageContainer);
         scroller.setMinSize(messageContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
-        // Input area: single-line input with send button to mimic chat web
+        // Input area with send and cancel buttons
         Composite inputRow = new Composite(main, SWT.NONE);
         inputRow.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, true, false));
-        GridLayout inputLayout = new GridLayout(2, false);
+        GridLayout inputLayout = new GridLayout(3, false);
         inputLayout.marginWidth = 0;
         inputLayout.marginHeight = 0;
         inputLayout.horizontalSpacing = 8;
@@ -115,13 +109,11 @@ public class DeepSeekView extends ViewPart {
 
         sendButton = new Button(inputRow, SWT.PUSH);
         sendButton.setText("Send");
-        sendButton.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
         sendButton.addListener(SWT.Selection, e -> sendMessage());
 
         cancelButton = new Button(inputRow, SWT.PUSH);
         cancelButton.setText("Cancel");
         cancelButton.setEnabled(false);
-        cancelButton.setVisible(false);
 
         addBubble(ChatBubble.BubbleType.AI, "Welcome to DeepSeek Assistant!");
     }
@@ -134,82 +126,6 @@ public class DeepSeekView extends ViewPart {
         if (inputText != null && !inputText.isDisposed()) {
             inputText.setFocus();
         }
-=======
-
-/**
- * Main view for interacting with the DeepSeek AI assistant.
- * Provides a chat interface within the Eclipse IDE.
- */
-public class DeepSeekView extends ViewPart {
-    
-    /**
-     * Unique identifier for this view.
-     */
-    public static final String ID = "com.deepseek.plugin.views.DeepSeekView";
-    
-    private Text inputText;
-    private Text outputText;
-    private Button sendButton;
-    
-    /**
-     * Creates the controls and layout for this view.
-     * Initializes the user interface components including input area,
-     * send button, and response display area.
-     *
-     * @param parent the parent composite to contain the view components
-     */
-    @Override
-    public void createPartControl(Composite parent) {
-        Composite container = new Composite(parent, SWT.NONE);
-        container.setLayout(new GridLayout(1, false));
-        
-        Label inputLabel = new Label(container, SWT.NONE);
-        inputLabel.setText("Pergunte ao DeepSeek:");
-        
-        inputText = new Text(container, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-        inputText.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, false));
-        
-        sendButton = new Button(container, SWT.PUSH);
-        sendButton.setText("Enviar para DeepSeek");
-        sendButton.addListener(SWT.Selection, e -> sendToDeepSeek());
-        
-        Label outputLabel = new Label(container, SWT.NONE);
-        outputLabel.setText("Resposta:");
-        
-        outputText = new Text(container, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL | SWT.READ_ONLY);
-        outputText.setLayoutData(new org.eclipse.swt.layout.GridData(SWT.FILL, SWT.FILL, true, true));
-    }
-    
-    /**
-     * Handles the sending of user messages to the DeepSeek API.
-     * Validates user input, checks for API key configuration,
-     * and processes the API response for display.
-     */
-    private void sendToDeepSeek() {
-        String question = inputText.getText();
-        if (!question.isEmpty()) {
-            if (!ConfigurationManager.hasApiKey()) {
-                outputText.setText("Configure sua API Key primeiro:\nWindow → Preferences → DeepSeek Plugin");
-                return;
-            }
-            
-            outputText.setText("Chamando DeepSeek API...");
-            
-            String apiKey = ConfigurationManager.getApiKey();
-            DeepSeekAPIClient client = new DeepSeekAPIClient(apiKey);
-            String response = client.sendMessage(question);
-            
-            outputText.setText("DeepSeek:\n\n" + response);
-        }
-    }
-    
-    /**
-     * Sets the focus to the primary input control of this view.
-     */
-    @Override
-    public void setFocus() {
-        inputText.setFocus();
->>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
     }
 
     /**
@@ -231,7 +147,6 @@ public class DeepSeekView extends ViewPart {
         } else {
             gd.horizontalAlignment = SWT.BEGINNING;
         }
-        // Try to size the bubble to its preferred width so alignment looks like a chat
         Point preferred = bubble.computeSize(SWT.DEFAULT, SWT.DEFAULT);
         gd.widthHint = Math.max(200, preferred.x);
         bubble.setLayoutData(gd);
@@ -276,13 +191,13 @@ public class DeepSeekView extends ViewPart {
 
         if (!ConfigurationManager.hasApiKey()) {
             addBubble(ChatBubble.BubbleType.AI,
-                "Erro: Configure sua API Key primeiro.\nWindow → Preferences → DeepSeek Plugin");
+                "Error: Please configure your API key.\nWindow → Preferences → DeepSeek Plugin");
             return;
         }
 
         inputText.setText("");
         addBubble(ChatBubble.BubbleType.USER, question);
-        addBubble(ChatBubble.BubbleType.AI, "Processando...");
+        addBubble(ChatBubble.BubbleType.AI, "Processing...");
 
         setProcessingState(true);
 
@@ -301,7 +216,7 @@ public class DeepSeekView extends ViewPart {
             } catch (Exception ex) {
                 if (!apiThread.isInterrupted()) {
                     Display.getDefault().asyncExec(() -> {
-                        replaceLastBubble("Erro: " + ex.getMessage());
+                        replaceLastBubble("Error: " + ex.getMessage());
                         setProcessingState(false);
                     });
                 }
@@ -330,7 +245,7 @@ public class DeepSeekView extends ViewPart {
             apiClient.cancelRequest();
         }
 
-        replaceLastBubble("Requisição cancelada pelo usuário.");
+        replaceLastBubble("Request cancelled by user.");
         setProcessingState(false);
     }
 
