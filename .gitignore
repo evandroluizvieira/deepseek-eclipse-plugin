@@ -1,0 +1,62 @@
+# Compiled class files
+bin/
+*.class
+
+# Eclipse project files (generated)
+.classpath
+.project
+.settings/
+
+# Build artifacts
+build/
+target/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Backup files
+*~
+*.bak
+*.swp
+*.swo
+
+# Project-specific ignores
+All Files.txt
+WORKSPACE_INSTRUCTIONS.md
+
+# Eclipse
+*.target
+.metadata/
+bin/
+target/
+.settings/
+.classpath
+.project
+
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+*.jar
