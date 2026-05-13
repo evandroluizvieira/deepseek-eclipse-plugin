@@ -1,51 +1,66 @@
 package com.deepseek.plugin.ui;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.TextLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.MenuItem;
+
 
 /**
- * A custom chat bubble widget used to display user and AI messages.
+ * Base class for chat bubble widgets used to display user and AI messages.
  * Provides selectable, non-editable text and draws a rounded visual bubble
  * with padded content.
- * 
- * <p>This widget supports custom coloring based on the bubble type,
+ *
+ * This widget supports custom coloring based on the bubble type,
  * automatic sizing based on text content, and optional context-menu
- * operations for copy and text selection.</p>
+ * operations for copy and text selection.
  */
-public class ChatBubble extends Composite {
+public abstract class ChatBubble extends Composite {
 
+    private final BubbleType type;         // The bubble type (USER or AI)
+    private String message;                 // The message text
+    private final String sender;           // The sender label
+    private Canvas bubbleCanvas;           // The canvas for the bubble
+    private Color bubbleColor;             // The bubble background color
+    private Color selectionColor;          // The selection color
+    private Color borderColor;             // The border color
+    private int padding = 12;              // Padding for the bubble
+
+    /**
+     * Represents the type of chat bubble.
+     * Can be USER for user messages or AI for assistant messages.
+     */
     public enum BubbleType {
-        USER, AI
+        USER,   // User message bubble
+        AI      // AI message bubble
     }
-
-    private final BubbleType type;
-    private final String message;
-    private final String sender;
-    private StyledText messageText;
-    private Canvas bubbleCanvas;
-
-    private Color bubbleColor;
-    private Color selectionColor;
-    private int padding = 15;
+    
+    /**
+     * Template method to get bubble background color.
+     * Subclasses must implement this to define their specific color.
+     */
+    protected abstract RGB getBubbleColorRGB();
+    
+    /**
+     * Template method to get text color.
+     * Subclasses must implement this to define their specific text color.
+     */
+    protected abstract int getTextColor();
 
     /**
      * Creates a new chat bubble for displaying message content.
-     * 
-     * <p>The bubble is initialized with colors, layout, text components,
+     *
+     * The bubble is initialized with colors, layout, text components,
      * and optional context menu actions. It automatically adjusts its size
-     * based on the text content.</p>
+     * based on the text content.
      *
      * @param parent  the parent composite
      * @param type    the bubble type (USER or AI)
@@ -59,7 +74,6 @@ public class ChatBubble extends Composite {
         this.message = message;
 
         setBackground(parent.getDisplay().getSystemColor(SWT.COLOR_TRANSPARENT));
-        initializeColors();
         createControls();
 
         addDisposeListener(e -> {
@@ -69,160 +83,10 @@ public class ChatBubble extends Composite {
             if (selectionColor != null && !selectionColor.isDisposed()) {
                 selectionColor.dispose();
             }
-        });
-    }
-
-    /**
-     * Initializes the bubble and selection colors based on the bubble type.
-     */
-    private void initializeColors() {
-        Display display = getDisplay();
-
-        if (type == BubbleType.USER) {
-            bubbleColor = new Color(display, 100, 170, 255);
-        } else {
-            bubbleColor = new Color(display, 100, 200, 100);
-        }
-
-        selectionColor = new Color(display, 220, 220, 220);
-    }
-
-    /**
-     * Creates and configures the internal controls such as the bubble canvas
-     * and the text component.
-     */
-    private void createControls() {
-        GridLayout layout = new GridLayout(1, false);
-        layout.marginWidth = 0;
-        layout.marginHeight = 0;
-        setLayout(layout);
-
-        bubbleCanvas = new Canvas(this, SWT.DOUBLE_BUFFERED);
-        GridData canvasData = new GridData(SWT.FILL, SWT.FILL, true, true);
-        bubbleCanvas.setLayoutData(canvasData);
-        bubbleCanvas.setBackground(bubbleColor);
-
-        int style = SWT.WRAP | SWT.MULTI | SWT.READ_ONLY;
-        messageText = new StyledText(bubbleCanvas, style) {
-            @Override
-            protected void checkSubclass() {}
-        };
-        messageText.setText(message);
-        messageText.setForeground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
-
-        forceTransparency();
-
-        messageText.setSelectionBackground(selectionColor);
-        messageText.setSelectionForeground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
-        messageText.setCaret(null);
-        messageText.setEditable(false);
-
-        createContextMenu();
-
-        bubbleCanvas.addPaintListener(e -> {
-            drawBubble(e.gc, bubbleCanvas.getClientArea());
-            positionText();
-        });
-
-        bubbleCanvas.addListener(SWT.Resize, e -> {
-            positionText();
-            bubbleCanvas.redraw();
-        });
-
-        adjustBubbleToTextContent();
-    }
-
-    /**
-     * Attempts to apply transparency to the internal text widget.
-     */
-    private void forceTransparency() {
-        try {
-            messageText.setBackground(null);
-        } catch (Exception e1) {
-            try {
-                messageText.setBackground(getDisplay().getSystemColor(SWT.COLOR_TRANSPARENT));
-            } catch (Exception e2) {
-                try {
-                    messageText.setBackground(bubbleColor);
-                } catch (Exception e3) {
-                    messageText.setBackground(getDisplay().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-                }
-            }
-        }
-    }
-
-    /**
-     * Creates the context menu that allows copy and select-all operations.
-     */
-    private void createContextMenu() {
-        Menu contextMenu = new Menu(messageText);
-
-        MenuItem copyItem = new MenuItem(contextMenu, SWT.PUSH);
-        copyItem.setText("Copy");
-        copyItem.addListener(SWT.Selection, e -> {
-            if (messageText.getSelectionText().length() > 0) {
-                messageText.copy();
+            if (borderColor != null && !borderColor.isDisposed()) {
+                borderColor.dispose();
             }
         });
-
-        MenuItem selectAllItem = new MenuItem(contextMenu, SWT.PUSH);
-        selectAllItem.setText("Select All");
-        selectAllItem.addListener(SWT.Selection, e -> {
-            messageText.selectAll();
-        });
-
-        messageText.setMenu(contextMenu);
-    }
-
-    /**
-     * Draws the rounded bubble background and outer border.
-     *
-     * @param gc   the graphics context used for drawing
-     * @param area the area of the canvas to draw in
-     */
-    private void drawBubble(GC gc, Rectangle area) {
-        gc.setAntialias(SWT.ON);
-
-        gc.setBackground(bubbleColor);
-        gc.fillRoundRectangle(area.x, area.y, area.width, area.height, 20, 20);
-
-        gc.setForeground(getDisplay().getSystemColor(SWT.COLOR_BLACK));
-        gc.setLineWidth(1);
-        gc.drawRoundRectangle(area.x, area.y, area.width - 1, area.height - 1, 20, 20);
-    }
-
-    /**
-     * Positions the text widget inside the bubble with consistent padding.
-     */
-    private void positionText() {
-        Rectangle canvasArea = bubbleCanvas.getClientArea();
-
-        int textX = padding;
-        int textY = padding;
-        int textWidth = canvasArea.width - (padding * 2);
-        int textHeight = canvasArea.height - (padding * 2);
-
-        if (textWidth < 10) textWidth = 10;
-        if (textHeight < 10) textHeight = 10;
-
-        messageText.setBounds(textX, textY, textWidth, textHeight);
-        messageText.redraw();
-    }
-
-    /**
-     * Adjusts the bubble size based on the actual content of the message.
-     */
-    public void adjustBubbleToTextContent() {
-        int idealHeight = computeBubbleHeight();
-        Point textSize = messageText.computeSize(SWT.DEFAULT, idealHeight);
-
-        messageText.setSize(textSize.x, idealHeight);
-        this.setSize(textSize.x + 20, idealHeight + 20);
-
-        this.layout(true, true);
-        if (getParent() != null) {
-            getParent().layout(true, true);
-        }
     }
 
     /**
@@ -235,20 +99,120 @@ public class ChatBubble extends Composite {
      */
     @Override
     public Point computeSize(int wHint, int hHint, boolean changed) {
-        if (messageText != null && !messageText.isDisposed()) {
-            int maxWidth = (wHint != SWT.DEFAULT
-                ? wHint
-                : getParent().getClientArea().width - padding * 4);
-
-            Point textPreferredSize =
-                messageText.computeSize(maxWidth, SWT.DEFAULT, true);
-
-            int width = textPreferredSize.x + (padding * 2);
-            int height = textPreferredSize.y + (padding * 2);
-            return new Point(width, height);
+        int maxWidth;
+        if (wHint != SWT.DEFAULT) {
+            maxWidth = wHint;
+        } else {
+            int parentWidth = getParent().getClientArea().width;
+            if (parentWidth <= 0) parentWidth = 800;
+            maxWidth = Math.max(200, (int) (parentWidth * 0.6)) - padding * 4;
         }
 
-        return new Point(400, 50);
+        TextLayout layout = new TextLayout(getDisplay());
+        layout.setText(message != null ? message : "");
+        layout.setWidth(maxWidth);
+        org.eclipse.swt.graphics.Rectangle bounds = layout.getBounds();
+        int width = bounds.width + padding * 2;
+        int height = bounds.height + padding * 2;
+        layout.dispose();
+        return new Point(width, Math.max(32, height));
+    }
+
+    /**
+     * Initializes the bubble and selection colors based on the bubble type.
+     * Called lazily to avoid calling abstract methods in constructor.
+     */
+    private void initializeColors() {
+        if (bubbleColor != null) return; // Already initialized
+        
+        Display display = getDisplay();
+
+        // Use template method to get bubble color from subclass
+        RGB colorRGB = getBubbleColorRGB();
+        bubbleColor = new Color(display, colorRGB.red, colorRGB.green, colorRGB.blue);
+
+        // Border: same as bubble fill for invisible border effect
+        borderColor = new Color(display, colorRGB.red, colorRGB.green, colorRGB.blue);
+
+        selectionColor = new Color(display, 200, 200, 200);
+    }
+
+    /**
+     * Creates and configures the internal controls such as the bubble canvas
+     * and the text component.
+     */
+    private void createControls() {
+        GridLayout layout = new GridLayout(1, false);
+        layout.marginWidth = 0;
+        layout.marginHeight = 0;
+        setLayout(layout);
+        bubbleCanvas = new Canvas(this, SWT.DOUBLE_BUFFERED);
+        GridData canvasData = new GridData(SWT.FILL, SWT.FILL, true, true);
+        bubbleCanvas.setLayoutData(canvasData);
+        if (getParent() != null && !getParent().isDisposed()) {
+            bubbleCanvas.setBackground(getParent().getBackground());
+        }
+
+        bubbleCanvas.addPaintListener(e -> {
+            drawBubble(e.gc, bubbleCanvas.getClientArea());
+            drawText(e.gc, bubbleCanvas.getClientArea());
+        });
+
+        bubbleCanvas.addListener(SWT.Resize, e -> bubbleCanvas.redraw());
+
+        adjustBubbleToTextContent();
+    }
+    /**
+     * Draws the rounded bubble background and outer border.
+     *
+     * @param gc   the graphics context used for drawing
+     * @param area the area of the canvas to draw in
+     */
+    private void drawBubble(GC gc, Rectangle area) {
+        initializeColors(); // Ensure colors are initialized
+        gc.setAntialias(SWT.ON);
+        gc.setBackground(bubbleColor);
+        // Only fill rounded rect (no outline) so the bubble blends with parent
+        // background at the corners, creating an invisible border look.
+        gc.fillRoundRectangle(area.x, area.y, area.width, area.height, 20, 20);
+    }
+    private void drawText(GC gc, Rectangle area) {
+        initializeColors(); // Ensure colors are initialized
+        if (message == null) return;
+        TextLayout layout = new TextLayout(getDisplay());
+        layout.setText(message);
+        layout.setWidth(Math.max(10, area.width - padding * 2));
+        // Use template method to get text color from subclass
+        gc.setForeground(getDisplay().getSystemColor(getTextColor()));
+        layout.draw(gc, area.x + padding, area.y + padding);
+        layout.dispose();
+    }
+
+    private int computeBubbleHeight() {
+        TextLayout layout = new TextLayout(getDisplay());
+        layout.setText(message != null ? message : "");
+        int parentWidth = getParent() != null ? getParent().getClientArea().width : 800;
+        layout.setWidth(Math.max(10, Math.max(200, (int) (parentWidth * 0.6)) - padding * 4));
+        int height = layout.getBounds().height;
+        layout.dispose();
+        return padding * 2 + height;
+    }
+
+    public void adjustBubbleToTextContent() {
+        int parentWidth = getParent() != null ? getParent().getClientArea().width : 800;
+        int maxTextWidth = Math.max(200, (int) (parentWidth * 0.6));
+        TextLayout layout = new TextLayout(getDisplay());
+        layout.setText(message != null ? message : "");
+        layout.setWidth(maxTextWidth);
+        org.eclipse.swt.graphics.Rectangle bounds = layout.getBounds();
+        int width = Math.min(bounds.width, maxTextWidth);
+        int height = bounds.height;
+        layout.dispose();
+        this.setSize(width + padding * 2, height + padding * 2);
+        this.layout(true, true);
+        if (getParent() != null) {
+            getParent().layout(true, true);
+        }
     }
 
     /**
@@ -284,27 +248,10 @@ public class ChatBubble extends Composite {
      * @param newMessage the updated message content
      */
     public void updateMessage(String newMessage) {
-        if (messageText != null && !messageText.isDisposed()) {
-            messageText.setText(newMessage);
-            adjustBubbleToTextContent();
+        this.message = newMessage;
+        adjustBubbleToTextContent();
+        if (bubbleCanvas != null && !bubbleCanvas.isDisposed()) {
+            bubbleCanvas.redraw();
         }
-    }
-
-    /**
-     * Computes and returns the required height for the bubble
-     * based on the current font metrics and padding.
-     *
-     * <p>The height is calculated using the font's line height
-     * plus vertical padding applied to the bubble.</p>
-     *
-     * @return the calculated bubble height in pixels
-     */
-    private int computeBubbleHeight() {
-        GC gc = new GC(messageText);
-        FontMetrics fm = gc.getFontMetrics();
-        int lineHeight = fm.getHeight();
-        gc.dispose();
-
-        return padding * 2 + lineHeight;
     }
 }
