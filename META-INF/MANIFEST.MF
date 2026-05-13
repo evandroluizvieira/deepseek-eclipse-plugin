@@ -4,7 +4,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-Name: DeepSeek Plugin
 Bundle-SymbolicName: com.deepseek.plugin;singleton:=true
 Bundle-Vendor: Evandro L. Vieira
-Bundle-Version: 1.2.0.qualifier
+Bundle-Version: 0.1.0.qualifier
 Bundle-Activator: com.deepseek.plugin.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
