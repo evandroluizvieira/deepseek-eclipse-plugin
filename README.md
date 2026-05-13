@@ -37,6 +37,7 @@ The plugin integrates seamlessly with Eclipse RCP using SWT/JFace and OSGi techn
 
    https://github.com/evandroluizvieira/deepseek-eclipse-plugin/releases/latest
 
+<<<<<<< HEAD
 2. Open your Eclipse installation directory.
 
 3. Copy the plugin JAR into the `dropins/` folder.
@@ -54,14 +55,45 @@ The plugin will be automatically detected and loaded by Eclipse.
 - Eclipse IDE for RCP and RAP Developers (2025-09 or newer)
 - Java 21+
 - DeepSeek API key
+=======
+### Project Structure
+```
+deepseek-eclipse-plugin/
+├── src/
+│   └── com/deepseek/plugin/
+│       ├── Activator.java
+│       ├── api/DeepSeekApiClient.java
+│       ├── configuration/ConfigurationManager.java
+│       ├── preferences/DeepSeekPreferencesPage.java
+│       └── views/DeepSeekView.java
+├── META-INF/MANIFEST.MF
+├── plugin.xml
+└── build.properties
+```
+
+### Build & Test
+- Right-click project → Run As → Eclipse Application
+- In new Eclipse instance: Window → Show View → Other → DeepSeek Assistant
+- Configure API key in preferences if not already set
+- Start chatting with DeepSeek AI
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 
 ## Usage
 
+<<<<<<< HEAD
 1. Open Eclipse
 2. Open the DeepSeek Assistant view
 3. Configure your DeepSeek API key
 4. Enter prompts or source code snippets
 5. Receive AI-powered responses directly inside Eclipse
+=======
+### Technical Stack
+ - **Platform:** Eclipse RCP
+ - **Build:** Eclipse PDE
+ - **Runtime:** OSGi Equinox
+ - **UI:** SWT/JFace
+ - **Java:** 21+
+>>>>>>> d2a98b5 (feat: complete DeepSeek plugin implementation)
 
 ## Troubleshooting
 
